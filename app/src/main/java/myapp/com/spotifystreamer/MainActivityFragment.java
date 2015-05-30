@@ -136,6 +136,7 @@ public class MainActivityFragment extends Fragment {
 
             @Override
             public void failure(RetrofitError error) {
+                //TODO add runUiThread
                 Toast.makeText(getActivity(),
                         "Error searching...",
                         Toast.LENGTH_SHORT).show();

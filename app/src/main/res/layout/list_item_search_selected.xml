@@ -14,7 +14,7 @@
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/list_item_icon"
+            android:id="@+id/list_item_img"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -28,18 +28,18 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/list_item_date_textview"
+            android:id="@+id/list_item_track_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-condensed"
-            android:textSize="20sp"  android:text="sdfsdfsdf"/>
+            android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/list_item_forecast_textview"
+            android:id="@+id/list_item_album_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-condensed"
-            android:textAppearance="?android:textAppearanceSmall"  android:text="sdfsdfsdf"/>
+            android:textAppearance="?android:textAppearanceSmall"/>
     </LinearLayout>
 
 
