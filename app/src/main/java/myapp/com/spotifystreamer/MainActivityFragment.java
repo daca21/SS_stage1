@@ -52,6 +52,7 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.inject(this, rootView);
 
+        //TODO Get text from EdittextField to search the artists
 
         _listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -79,9 +80,6 @@ public class MainActivityFragment extends Fragment {
     private void serachArtist() {
 
         SpotifyApi api = new SpotifyApi();
-        // Most (but not all) of the Spotify Web API endpoints require authorisation.
-        // If you know you'll only use the ones that don't require authorisation you can skip this step
-        //api.setAccessToken("2817a9dfb4774310a5dfb0ba36d6aa48");
 
         SpotifyService spotify = api.getService();
 
@@ -103,7 +101,7 @@ public class MainActivityFragment extends Fragment {
                     obj = items.get(i);
                     name = obj.name;
                     spotify_id = obj.id;
-                    Log.d(LOG_TAG, name + " - id :" + spotify_id);
+//                    Log.d(LOG_TAG, name + " - id :" + spotify_id);
 
                     for (Image imtemp : obj.images) {
                         if (imtemp.width > 75 ) {
