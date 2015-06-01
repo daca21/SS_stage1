@@ -1,16 +1,23 @@
 package myapp.com.spotifystreamer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -39,6 +46,7 @@ public class MainActivityFragment extends Fragment {
     ArrayAdapter<ArtistResult> mAdapter;
     ArtistResult art_reslt;
     List<ArtistResult> arrayOfSearch;
+//    EditText editText;
 
     public MainActivityFragment() {
     }
@@ -46,13 +54,28 @@ public class MainActivityFragment extends Fragment {
     @InjectView(R.id.listview_search_result)
     protected ListView _listView;
 
+    @InjectView(R.id.editText_search)
+    protected EditText editText;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.inject(this, rootView);
 
-        //TODO Get text from EdittextField to search the artists
+        //Get text from EditextField to search the artists
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    performSearch();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
 
         _listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -69,21 +92,38 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Parcelable state = _listView.onSaveInstanceState();
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        serachArtist();
+        //performSearch();
 //      mAdapter.notifyDataSetChanged();
     }
 
     private Handler handler = new Handler();
 
-    private void serachArtist() {
+    private void performSearch() {
+        //http://stackoverflow.com/questions/9854618/hide-keyboard-after-user-searches
+        editText.clearFocus();
+        InputMethodManager in = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        in.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+
+        String search_artist = editText.getText().toString();
 
         SpotifyApi api = new SpotifyApi();
 
         SpotifyService spotify = api.getService();
 
-        spotify.searchArtists("Beyonce", new Callback<ArtistsPager>() {
+        spotify.searchArtists(search_artist, new Callback<ArtistsPager>() {
             @Override
             public void success(ArtistsPager artistsPager, Response response) {
 
@@ -93,6 +133,11 @@ public class MainActivityFragment extends Fragment {
                 String name = null;
                 String img_url = null;
                 String spotify_id = null;
+
+                if (items.size() == 0){
+                    Log.d("items is emplty", items.toString());
+                    showToastFromBackground(getResources().getString(R.string.artist_not_found) + items.toString());
+                }
 
                 arrayOfSearch = new ArrayList<ArtistResult>();
 
@@ -136,14 +181,22 @@ public class MainActivityFragment extends Fragment {
 
             @Override
             public void failure(RetrofitError error) {
-                //TODO add runUiThread
-                Toast.makeText(getActivity(),
-                        "Error searching...",
-                        Toast.LENGTH_SHORT).show();
-
+                //If error display a toast
+                showToastFromBackground(error.toString());
             }
         });
+    }
 
+    void ToastText(String s){
+        Toast.makeText(getActivity(),s, Toast.LENGTH_SHORT).show();
+    }
 
+    public void showToastFromBackground(final String message) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

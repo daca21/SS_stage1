@@ -20,7 +20,7 @@
         </activity>
         <activity
             android:name=".DisplayTop10TrackActivity"
-            android:label="@string/title_activity_display_top10_track"
+            android:label="@string/top10"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
