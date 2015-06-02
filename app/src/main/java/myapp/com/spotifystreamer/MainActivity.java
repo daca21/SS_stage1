@@ -1,17 +1,28 @@
 package myapp.com.spotifystreamer;
 
-import android.support.v7.app.ActionBarActivity;
+import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
 
+    private static final String FRAGMENT = "frament";
+    private Fragment mFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        if (savedInstanceState == null) {
+//            mFragment = new Fragment();
+//            getFragmentManager().beginTransaction()
+//                    .add(R.id.fragment, mFragment).commit();
+//        }
     }
 
 
@@ -31,9 +42,25 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        super.onSaveInstanceState(outState);
+//        getFragmentManager().putFragment(outState, FRAGMENT, mFragment);
+//    }
+//
+//    @Override
+//    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//        super.onRestoreInstanceState(savedInstanceState);
+//
+//        if(savedInstanceState != null) {
+//            mFragment = getFragmentManager().getFragment(savedInstanceState, FRAGMENT);
+//        }
+//    }
 }

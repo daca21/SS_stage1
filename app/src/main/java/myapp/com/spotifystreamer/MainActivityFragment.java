@@ -45,8 +45,14 @@ public class MainActivityFragment extends Fragment {
 
     ArrayAdapter<ArtistResult> mAdapter;
     ArtistResult art_reslt;
-    List<ArtistResult> arrayOfSearch;
+    ArrayList<ArtistResult> arrayOfSearchArtist;
 //    EditText editText;
+    private static final String LIST_ARTIST_STATE = "listArstistState";
+    private static final String SELECTED_KEY = "selected_position";
+    private static final String NAME_ARTIST_ENTER_KEY = "name_artist_enter";
+    private int mPosition = ListView.INVALID_POSITION;
+
+    private Parcelable mListState = null;
 
     public MainActivityFragment() {
     }
@@ -62,6 +68,17 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.inject(this, rootView);
+
+        if(savedInstanceState != null) {
+            // read the artistresult list from the saved state
+            arrayOfSearchArtist = savedInstanceState.getParcelableArrayList(LIST_ARTIST_STATE);
+            mAdapter = new SearchArrayAdapter(getActivity(),
+                    R.layout.list_item_search_result, arrayOfSearchArtist);
+            _listView.setAdapter(mAdapter);
+        } else {
+            // load the  list
+            arrayOfSearchArtist = new ArrayList<ArtistResult>();
+        }
 
         //Get text from EditextField to search the artists
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -81,35 +98,49 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
                 Log.d(LOG_TAG, "Clicked");
+                mPosition = position;
                 ArtistResult artist_data = mAdapter.getItem(position);
+
                 Intent intent = new Intent(getActivity(), DisplayTop10TrackActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, artist_data.spotifyId);
+                        .putExtra(Intent.EXTRA_TEXT, artist_data.spotifyId)
+                        .putExtra(NAME_ARTIST_ENTER_KEY,editText.getText().toString() );
+
                 startActivity(intent);
+
             }
         });
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
 
         return rootView;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Parcelable state = _listView.onSaveInstanceState();
-    }
 
     @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(LIST_ARTIST_STATE, arrayOfSearchArtist);
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+
     }
+
+
 
     @Override
     public void onResume() {
         super.onResume();
         //performSearch();
 //      mAdapter.notifyDataSetChanged();
+
     }
 
-    private Handler handler = new Handler();
+
 
     private void performSearch() {
         //http://stackoverflow.com/questions/9854618/hide-keyboard-after-user-searches
@@ -118,85 +149,85 @@ public class MainActivityFragment extends Fragment {
         in.hideSoftInputFromWindow(editText.getWindowToken(), 0);
 
         String search_artist = editText.getText().toString();
+        if (search_artist.isEmpty()){
+            ToastText(getResources().getString(R.string.edittext_is_empty));
+//            editText.findFocus();
+        }
+        else{
+            SpotifyApi api = new SpotifyApi();
 
-        SpotifyApi api = new SpotifyApi();
+            SpotifyService spotify = api.getService();
 
-        SpotifyService spotify = api.getService();
+            spotify.searchArtists(search_artist, new Callback<ArtistsPager>() {
+                @Override
+                public void success(ArtistsPager artistsPager, Response response) {
 
-        spotify.searchArtists(search_artist, new Callback<ArtistsPager>() {
-            @Override
-            public void success(ArtistsPager artistsPager, Response response) {
+                    List<Artist> items = artistsPager.artists.items;
+                    Artist obj = null;
+//                    Log.d("Album success", items.toString());
+                    String name = null;
+                    String img_url = null;
+                    String spotify_id = null;
 
-                List<Artist> items = artistsPager.artists.items;
-                Artist obj = null;
-//                Log.d("Album success", items.toString());
-                String name = null;
-                String img_url = null;
-                String spotify_id = null;
-
-                if (items.size() == 0){
-                    Log.d("items is emplty", items.toString());
-                    showToastFromBackground(getResources().getString(R.string.artist_not_found) + items.toString());
-                }
-
-                arrayOfSearch = new ArrayList<ArtistResult>();
-
-                for (int i = 0; i < items.size(); i++) {
-
-                    obj = items.get(i);
-                    name = obj.name;
-                    spotify_id = obj.id;
-//                    Log.d(LOG_TAG, name + " - id :" + spotify_id);
-
-                    for (Image imtemp : obj.images) {
-                        if (imtemp.width > 75 ) {
-//                            Log.d(LOG_TAG, imtemp.url.toString());
-                            img_url = imtemp.url.toString();
-                        }
+                    if (items.size() == 0){
+//                        Log.d("items is emplty", items.toString());
+                        Utils.showToastFromBackground(getResources().getString(R.string.artist_not_found) + items.toString(), getActivity());
                     }
-                    art_reslt = new ArtistResult(name, spotify_id, img_url);
-                    arrayOfSearch.add(art_reslt);
 
-                }
+                    for (int i = 0; i < items.size(); i++) {
 
-                new Thread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        // Do something
-                        mAdapter = new SearchArrayAdapter(getActivity(),
-                                R.layout.list_item_search_result, arrayOfSearch);
-                        handler.post( new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                _listView.setAdapter(mAdapter);
+                        obj = items.get(i);
+                        name = obj.name;
+                        spotify_id = obj.id;
+//                        Log.d(LOG_TAG, name + " - id :" + spotify_id);
+
+                        for (Image imtemp : obj.images) {
+                            if (imtemp.width > 75 ) {
+//                                Log.d(LOG_TAG, imtemp.url.toString());
+                                img_url = imtemp.url.toString();
                             }
-                        } );
-                    }
-                } ).start();
-            }
+                        }
+                        art_reslt = new ArtistResult(name, spotify_id, img_url);
+                        arrayOfSearchArtist.add(art_reslt);
 
-            @Override
-            public void failure(RetrofitError error) {
-                //If error display a toast
-                showToastFromBackground(error.toString());
-            }
-        });
+                    }
+                    PopulateListviewFromBackground();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    //If error display a toast
+                    Utils.showToastFromBackground(error.toString(), getActivity());
+                }
+            });
+        }
     }
 
     void ToastText(String s){
         Toast.makeText(getActivity(),s, Toast.LENGTH_SHORT).show();
     }
 
-    public void showToastFromBackground(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
+    private Handler handler = new Handler();
+    void PopulateListviewFromBackground(){
+        new Thread( new Runnable()
+        {
             @Override
-            public void run() {
-                Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+            public void run()
+            {
+                // Do something
+                mAdapter = new SearchArrayAdapter(getActivity(),
+                        R.layout.list_item_search_result, arrayOfSearchArtist);
+                handler.post( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        _listView.setAdapter(mAdapter);
+                    }
+                } );
             }
-        });
+        } ).start();
+
     }
+
 }

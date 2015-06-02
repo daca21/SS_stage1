@@ -1,15 +1,16 @@
 package myapp.com.spotifystreamer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,10 +36,16 @@ import retrofit.client.Response;
 public class DisplayTop10TrackActivityFragment extends Fragment {
 
     private String LOG_TAG = DisplayTop10TrackActivity.class.getSimpleName();
+
+    private static final String NAME_ARTIST_ENTER_KEY = "name_artist_enter";
+    private static final String TOP_TRACK_KEY = "name_artist_enter";
+
+
     private String data;
-    List<TrackResult> arrayOfTracks;
+    ArrayList<TrackResult> arrayOfTracks;
     TrackResult _trackResult;
     TopTrackAdapter mAdapter;
+    private Handler handler = new Handler();
 
 
     @InjectView(android.R.id.list)
@@ -53,29 +60,65 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_display_top10_track, container, false);
         ButterKnife.inject(this, rootView);
-        // The detail Activity called via intent.  Inspect the intent for forecast data.
+
+        // The display Activity called via intent.  Inspect the intent for forecast data.
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             data = intent.getStringExtra(Intent.EXTRA_TEXT);
-            ((TextView) rootView.findViewById(R.id.detail_text))
-                    .setText(data);
+            if (intent.hasExtra(NAME_ARTIST_ENTER_KEY)){
+                Log.d(LOG_TAG, "success getintent"+ intent.getStringExtra(NAME_ARTIST_ENTER_KEY) );
+            }
+//            To see debug spotify id
+//            ((TextView) rootView.findViewById(R.id.detail_text))
+//                    .setText(data);
         }
-//        serachTop10Track();
+
+        if(savedInstanceState != null) {
+            // read arrayOfTracks list from the saved state
+            arrayOfTracks = savedInstanceState.getParcelableArrayList(TOP_TRACK_KEY);
+            mAdapter = new TopTrackAdapter(getActivity(),
+                    android.R.id.list, arrayOfTracks);
+            _listView.setAdapter(mAdapter);
+        } else {
+            // load the top 10 track
+            arrayOfTracks = new ArrayList<TrackResult>();
+            searchTop10Track();
+        }
+
+
         return rootView;
     }
-    private Handler handler = new Handler();
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(TOP_TRACK_KEY, arrayOfTracks);
+        super.onSaveInstanceState(outState);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        serachTop10Track();
+//        To debug
+//        serachTop10Track();
     }
 
-    private void serachTop10Track() {
+    private void searchTop10Track() {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = prefs.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
 
         SpotifyApi api = new SpotifyApi();
         SpotifyService spotify = api.getService();
         Map<String, Object> mTrackoption = new HashMap<>();
-        mTrackoption.put("country", "US");
+        //TODO change it dynamiclly
+
+        if(location.isEmpty()) {
+            mTrackoption.put("country", "US"); //  set US by default if country is empty
+        }
+        else{
+            mTrackoption.put("country", location);
+        }
 
 
         spotify.getArtistTopTrack(data, mTrackoption, new Callback<Tracks>() {
@@ -92,7 +135,11 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
                 String thumdnail_Small = null;
                 String previewURL = null;
 
-                arrayOfTracks = new ArrayList<TrackResult>();
+                if(tracksList.size() == 0){
+                    Utils.showToastFromBackground(getResources().getString(R.string.tracks_empty), getActivity());
+                }
+
+
 
                 for (int i = 0; i < tracksList.size(); i++) {
 
@@ -131,22 +178,12 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
                         } );
                     }
                 } ).start();
-
-
-
-
             }
 
             @Override
             public void failure(RetrofitError error) {
-                Log.d(LOG_TAG, error.getMessage().toString());
-//                runOnUiThread(() -> {
-//                    setLoading(false);
-//                    Toast.makeText(getActivity(),
-//                            getString(R.string.error_failed),
-//                            Toast.LENGTH_LONG).show();
-//                });
-
+//                Log.d(LOG_TAG, error.getMessage().toString());
+                Utils.showToastFromBackground(error.toString(), getActivity());
             }
         });
 
