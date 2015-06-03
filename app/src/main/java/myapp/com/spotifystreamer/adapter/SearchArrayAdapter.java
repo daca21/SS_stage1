@@ -1,4 +1,4 @@
-package myapp.com.spotifystreamer;
+package myapp.com.spotifystreamer.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,20 +14,21 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import myapp.com.spotifystreamer.models.TrackResult;
+import myapp.com.spotifystreamer.R;
+import myapp.com.spotifystreamer.models.ArtistResult;
 
 /**
- * Created  on 5/30/15.
+ * Created  on 5/28/15.
  */
-public class TopTrackAdapter extends ArrayAdapter<TrackResult> {
+public class SearchArrayAdapter extends ArrayAdapter<ArtistResult> {
 
     private final LayoutInflater inflater;
     private Context context;
 
     ViewHolder holder = null;
 
-    public TopTrackAdapter(Context context, int resourceId, List<TrackResult> trackResultList) {
-        super(context, resourceId, trackResultList);
+    public SearchArrayAdapter(Context context, int resourceId, List<ArtistResult> artist_result) {
+        super(context, resourceId, artist_result);
         this.context = context;
         inflater = LayoutInflater.from(context);
     }
@@ -35,20 +36,19 @@ public class TopTrackAdapter extends ArrayAdapter<TrackResult> {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         // Get the data item for this position
-        TrackResult search_item = getItem(position);
+        ArtistResult search = getItem(position);
 
         if (view != null) {
             holder = (ViewHolder) view.getTag();
         } else {
-            view = inflater.inflate(R.layout.list_item_search_selected, parent, false);
+            view = inflater.inflate(R.layout.list_item_search_result, parent, false);
             holder = new ViewHolder(view);
             view.setTag(holder);
         }
 
         // Populate the data into the template view using the data object
-        holder.track_name.setText(search_item.track_name);
-        holder.album_name.setText(search_item.album_name);
-        String imageUrl = search_item.thumbnail_small;
+        holder.name.setText(search.name);
+        String imageUrl = search.thumbnail;
         Picasso.with(view.getContext())
                 .load(imageUrl)
                 .into(holder.img);
@@ -59,12 +59,8 @@ public class TopTrackAdapter extends ArrayAdapter<TrackResult> {
     }
 
     public static class ViewHolder {
-        @InjectView(R.id.list_item_track_name)
-        TextView track_name;
-        @InjectView(R.id.list_item_album_name)
-        TextView album_name;
-        @InjectView(R.id.list_item_img)
-        ImageView img;
+        @InjectView(R.id.list_item_title_textview) TextView name;
+        @InjectView(R.id.list_item_thumbnail) ImageView img;
 
         public ViewHolder(View view) {
             ButterKnife.inject(this, view);

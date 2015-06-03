@@ -1,7 +1,17 @@
 package myapp.com.spotifystreamer;
 
+import android.os.AsyncTask;
+
+import kaaes.spotify.webapi.android.models.ArtistsPager;
+
 /**
- * Created by Dac Duy Nguyen on 6/2/15.
+ * Created by Dak on 6/2/15.
  */
-public class FetchArtistDataTask {
+public class FetchArtistDataTask extends AsyncTask<String, Void, ArtistsPager>{
+
+    //TODO with asyncTask + spotify api
+    @Override
+    protected ArtistsPager doInBackground(String... params) {
+        return null;
+    }
 }

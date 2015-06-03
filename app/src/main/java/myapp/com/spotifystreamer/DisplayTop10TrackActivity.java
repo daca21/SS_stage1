@@ -1,8 +1,10 @@
 package myapp.com.spotifystreamer;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -12,7 +14,11 @@ public class DisplayTop10TrackActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        actionBarSetup();
         setContentView(R.layout.activity_display_top10_track);
+//        actionBarSetup("ddd");
+        actionBarSetup(DisplayTop10TrackActivityFragment.data_artist_name);
+
     }
 
 
@@ -36,7 +42,22 @@ public class DisplayTop10TrackActivity extends ActionBarActivity {
             startActivity(intent);
             return true;
         }
+        if(id == android.R.id.home){
+            super.onBackPressed();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Sets the Action Bar for new Android versions.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void actionBarSetup(String s) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            android.support.v7.app.ActionBar ab = getSupportActionBar();
+            ab.setSubtitle(s);
+        }
     }
 }

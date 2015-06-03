@@ -24,6 +24,7 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import myapp.com.spotifystreamer.adapter.TopTrackAdapter;
 import myapp.com.spotifystreamer.models.TrackResult;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -35,13 +36,14 @@ import retrofit.client.Response;
  */
 public class DisplayTop10TrackActivityFragment extends Fragment {
 
+    public static String data_artist_name;
     private String LOG_TAG = DisplayTop10TrackActivity.class.getSimpleName();
 
     private static final String NAME_ARTIST_ENTER_KEY = "name_artist_enter";
     private static final String TOP_TRACK_KEY = "name_artist_enter";
 
 
-    private String data;
+    public String data;
     ArrayList<TrackResult> arrayOfTracks;
     TrackResult _trackResult;
     TopTrackAdapter mAdapter;
@@ -66,7 +68,9 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
         if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             data = intent.getStringExtra(Intent.EXTRA_TEXT);
             if (intent.hasExtra(NAME_ARTIST_ENTER_KEY)){
-                Log.d(LOG_TAG, "success getintent"+ intent.getStringExtra(NAME_ARTIST_ENTER_KEY) );
+//                Log.d(LOG_TAG, "success getintent "+ intent.getStringExtra(NAME_ARTIST_ENTER_KEY) );
+                data_artist_name = intent.getStringExtra(NAME_ARTIST_ENTER_KEY);
+
             }
 //            To see debug spotify id
 //            ((TextView) rootView.findViewById(R.id.detail_text))
@@ -81,7 +85,7 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
             _listView.setAdapter(mAdapter);
         } else {
             // load the top 10 track
-            arrayOfTracks = new ArrayList<TrackResult>();
+            arrayOfTracks = new ArrayList<>();
             searchTop10Track();
         }
 
@@ -111,7 +115,6 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
         SpotifyApi api = new SpotifyApi();
         SpotifyService spotify = api.getService();
         Map<String, Object> mTrackoption = new HashMap<>();
-        //TODO change it dynamiclly
 
         if(location.isEmpty()) {
             mTrackoption.put("country", "US"); //  set US by default if country is empty
@@ -138,8 +141,6 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
                 if(tracksList.size() == 0){
                     Utils.showToastFromBackground(getResources().getString(R.string.tracks_empty), getActivity());
                 }
-
-
 
                 for (int i = 0; i < tracksList.size(); i++) {
 
@@ -188,4 +189,15 @@ public class DisplayTop10TrackActivityFragment extends Fragment {
         });
 
     }
+
+    /**
+     * Sets the Action Bar for new Android versions.
+//     */
+//    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+//    private void actionBarSetup() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//            ActionBar ab  = ((ActionBarActivity)getActivity()).getSupportActionBar().setSubtitle("dd");
+//            ab.setSubtitle(s);
+//        }
+//    }
 }

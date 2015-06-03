@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -30,6 +29,7 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
+import myapp.com.spotifystreamer.adapter.SearchArrayAdapter;
 import myapp.com.spotifystreamer.models.ArtistResult;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -46,13 +46,7 @@ public class MainActivityFragment extends Fragment {
     ArrayAdapter<ArtistResult> mAdapter;
     ArtistResult art_reslt;
     ArrayList<ArtistResult> arrayOfSearchArtist;
-//    EditText editText;
-    private static final String LIST_ARTIST_STATE = "listArstistState";
-    private static final String SELECTED_KEY = "selected_position";
-    private static final String NAME_ARTIST_ENTER_KEY = "name_artist_enter";
     private int mPosition = ListView.INVALID_POSITION;
-
-    private Parcelable mListState = null;
 
     public MainActivityFragment() {
     }
@@ -71,13 +65,13 @@ public class MainActivityFragment extends Fragment {
 
         if(savedInstanceState != null) {
             // read the artistresult list from the saved state
-            arrayOfSearchArtist = savedInstanceState.getParcelableArrayList(LIST_ARTIST_STATE);
+            arrayOfSearchArtist = savedInstanceState.getParcelableArrayList(Constant.LIST_ARTIST_STATE);
             mAdapter = new SearchArrayAdapter(getActivity(),
                     R.layout.list_item_search_result, arrayOfSearchArtist);
             _listView.setAdapter(mAdapter);
         } else {
             // load the  list
-            arrayOfSearchArtist = new ArrayList<ArtistResult>();
+            arrayOfSearchArtist = new ArrayList<>();
         }
 
         //Get text from EditextField to search the artists
@@ -85,6 +79,9 @@ public class MainActivityFragment extends Fragment {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    mAdapter = new SearchArrayAdapter(getActivity(),
+                            R.layout.list_item_search_result, arrayOfSearchArtist);
+                    mAdapter.clear();
                     performSearch();
                     return true;
                 }
@@ -103,17 +100,17 @@ public class MainActivityFragment extends Fragment {
 
                 Intent intent = new Intent(getActivity(), DisplayTop10TrackActivity.class)
                         .putExtra(Intent.EXTRA_TEXT, artist_data.spotifyId)
-                        .putExtra(NAME_ARTIST_ENTER_KEY,editText.getText().toString() );
+                        .putExtra(Constant.NAME_ARTIST_ENTER_KEY,editText.getText().toString() );
 
                 startActivity(intent);
 
             }
         });
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(Constant.SELECTED_KEY)) {
             // The listview probably hasn't even been populated yet.  Actually perform the
             // swapout in onLoadFinished.
-            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+            mPosition = savedInstanceState.getInt(Constant.SELECTED_KEY);
         }
 
         return rootView;
@@ -122,9 +119,9 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList(LIST_ARTIST_STATE, arrayOfSearchArtist);
+        outState.putParcelableArrayList(Constant.LIST_ARTIST_STATE, arrayOfSearchArtist);
         if (mPosition != ListView.INVALID_POSITION) {
-            outState.putInt(SELECTED_KEY, mPosition);
+            outState.putInt(Constant.SELECTED_KEY, mPosition);
         }
         super.onSaveInstanceState(outState);
 
@@ -215,8 +212,10 @@ public class MainActivityFragment extends Fragment {
             public void run()
             {
                 // Do something
-                mAdapter = new SearchArrayAdapter(getActivity(),
-                        R.layout.list_item_search_result, arrayOfSearchArtist);
+//                mAdapter = new SearchArrayAdapter(getActivity(),
+//                        R.layout.list_item_search_result, arrayOfSearchArtist);
+
+//                mAdapter.notifyDataSetChanged();
                 handler.post( new Runnable()
                 {
                     @Override
